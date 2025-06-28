@@ -15,27 +15,40 @@ const DemoRequestModal = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
 
     try {
-      // For expo demo, just show success without backend complexity
-      // In the future, you can add real API integration here
-      
-      console.log('Demo request submitted:', {
-        ...formData,
-        timestamp: new Date().toISOString(),
-        source: 'evolution-landing-page'
+      // Submit to Formspree for real email functionality
+      const response = await fetch('https://formspree.io/f/manjaljw', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          company: formData.company,
+          message: formData.message,
+          _subject: `Waitlist Request from ${formData.name} - Evolution Software Services`,
+          _replyto: formData.email,
+          timestamp: new Date().toISOString(),
+          source: 'evolution-landing-page'
+        }),
       });
 
-      // Show success immediately for clean expo experience
-      setIsSubmitted(true);
-      
-      setTimeout(() => {
-        onClose();
-        setIsSubmitted(false);
-        setFormData({ name: '', email: '', company: '', message: '' });
-      }, 3000);
+      if (response.ok) {
+        console.log('Waitlist request submitted successfully via Formspree');
+        setIsSubmitted(true);
+        
+        setTimeout(() => {
+          onClose();
+          setIsSubmitted(false);
+          setFormData({ name: '', email: '', company: '', message: '' });
+        }, 3000);
+      } else {
+        throw new Error('Failed to submit form');
+      }
       
     } catch (error) {
-      console.error('Error submitting demo request:', error);
-      alert('Please contact us directly at corey@evolutionsoftwareservices.com');
+      console.error('Error submitting waitlist request:', error);
+      alert('Please try again or contact us directly at corey@evolutionsoftwareservices.com');
     } finally {
       setIsSubmitting(false);
     }
@@ -71,7 +84,7 @@ const DemoRequestModal = ({ isOpen, onClose }) => {
               Thank you for your interest in Evolution Software Services.
             </p>
             <div className="success-details">
-              <p>• Thank you for your interest!</p>
+              <p>• Your request has been sent to our team</p>
               <p>• We'll follow up within 24 hours</p>
               <p>• Questions? Email corey@evolutionsoftwareservices.com</p>
             </div>
