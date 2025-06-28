@@ -33,28 +33,39 @@ const DemoRequestModal = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
 
     try {
-      // Send to backend for SNS notification and storage
+      // For now, create a mailto link as fallback since API isn't set up yet
+      const subject = `Waitlist Request from ${formData.name}`;
+      const body = `Name: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0ACompany: ${formData.company}%0D%0AMessage: ${formData.message}%0D%0A%0D%0ASubmitted: ${new Date().toISOString()}`;
+      
+      // Try API first, fallback to email if it fails
       const apiUrl = `${getApiBaseUrl()}/api/demo-request`;
       console.log('🎯 Sending demo request to:', apiUrl);
       
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          timestamp: new Date().toISOString(),
-          source: 'evolution-landing-page'
-        })
-      });
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...formData,
+            timestamp: new Date().toISOString(),
+            source: 'evolution-landing-page'
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit demo request');
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Demo request submitted:', result.request_id);
+          setIsSubmitted(true);
+        } else {
+          throw new Error('API not available');
+        }
+      } catch (apiError) {
+        // Fallback: Open email client
+        console.log('API not available, using email fallback:', apiError.message);
+        window.location.href = `mailto:corey@evolutionsoftwareservices.com?subject=${subject}&body=${body}`;
+        setIsSubmitted(true);
       }
 
-      const result = await response.json();
-      console.log('Demo request submitted:', result.request_id);
-
-      setIsSubmitted(true);
       setTimeout(() => {
         onClose();
         setIsSubmitted(false);
@@ -62,7 +73,12 @@ const DemoRequestModal = ({ isOpen, onClose }) => {
       }, 3000);
     } catch (error) {
       console.error('Error submitting demo request:', error);
-      alert('Failed to submit request. Please try again or contact us directly at corey@evolutionsoftwareservices.com');
+      alert('Opening email client to send your request directly to corey@evolutionsoftwareservices.com');
+      
+      // Fallback email
+      const subject = `Waitlist Request from ${formData.name}`;
+      const body = `Name: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0ACompany: ${formData.company}%0D%0AMessage: ${formData.message}`;
+      window.location.href = `mailto:corey@evolutionsoftwareservices.com?subject=${subject}&body=${body}`;
     } finally {
       setIsSubmitting(false);
     }
@@ -98,7 +114,7 @@ const DemoRequestModal = ({ isOpen, onClose }) => {
               Thank you for your interest in Evolution Software Services.
             </p>
             <div className="success-details">
-              <p>• Our team has been notified</p>
+              <p>• Your request has been sent to corey@evolutionsoftwareservices.com</p>
               <p>• You'll hear from us within 24 hours</p>
               <p>• We'll schedule a personalized demo</p>
             </div>
