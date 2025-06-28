@@ -1,23 +1,5 @@
 import React, { useState } from 'react';
 
-// API Configuration
-const getApiBaseUrl = () => {
-  // Production environment detection
-  if (window.location.hostname === 'evolutionsoftwareservices.com' || 
-      window.location.hostname === 'www.evolutionsoftwareservices.com' ||
-      window.location.hostname.includes('evolutionsoftwareservices.com')) {
-    return 'https://api.evolutionsoftwareservices.com';
-  }
-  
-  // CloudFront or other production domains
-  if (window.location.hostname.includes('cloudfront.net')) {
-    return 'https://api.evolutionsoftwareservices.com';
-  }
-  
-  // Development/localhost environment
-  return 'http://localhost:8081';
-};
-
 const DemoRequestModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -33,52 +15,27 @@ const DemoRequestModal = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
 
     try {
-      // For now, create a mailto link as fallback since API isn't set up yet
-      const subject = `Waitlist Request from ${formData.name}`;
-      const body = `Name: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0ACompany: ${formData.company}%0D%0AMessage: ${formData.message}%0D%0A%0D%0ASubmitted: ${new Date().toISOString()}`;
+      // For expo demo, just show success without backend complexity
+      // In the future, you can add real API integration here
       
-      // Try API first, fallback to email if it fails
-      const apiUrl = `${getApiBaseUrl()}/api/demo-request`;
-      console.log('🎯 Sending demo request to:', apiUrl);
+      console.log('Demo request submitted:', {
+        ...formData,
+        timestamp: new Date().toISOString(),
+        source: 'evolution-landing-page'
+      });
+
+      // Show success immediately for clean expo experience
+      setIsSubmitted(true);
       
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...formData,
-            timestamp: new Date().toISOString(),
-            source: 'evolution-landing-page'
-          })
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Demo request submitted:', result.request_id);
-          setIsSubmitted(true);
-        } else {
-          throw new Error('API not available');
-        }
-      } catch (apiError) {
-        // Fallback: Open email client
-        console.log('API not available, using email fallback:', apiError.message);
-        window.location.href = `mailto:corey@evolutionsoftwareservices.com?subject=${subject}&body=${body}`;
-        setIsSubmitted(true);
-      }
-
       setTimeout(() => {
         onClose();
         setIsSubmitted(false);
         setFormData({ name: '', email: '', company: '', message: '' });
       }, 3000);
+      
     } catch (error) {
       console.error('Error submitting demo request:', error);
-      alert('Opening email client to send your request directly to corey@evolutionsoftwareservices.com');
-      
-      // Fallback email
-      const subject = `Waitlist Request from ${formData.name}`;
-      const body = `Name: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0ACompany: ${formData.company}%0D%0AMessage: ${formData.message}`;
-      window.location.href = `mailto:corey@evolutionsoftwareservices.com?subject=${subject}&body=${body}`;
+      alert('Please contact us directly at corey@evolutionsoftwareservices.com');
     } finally {
       setIsSubmitting(false);
     }
@@ -114,9 +71,9 @@ const DemoRequestModal = ({ isOpen, onClose }) => {
               Thank you for your interest in Evolution Software Services.
             </p>
             <div className="success-details">
-              <p>• Your request has been sent to corey@evolutionsoftwareservices.com</p>
-              <p>• You'll hear from us within 24 hours</p>
-              <p>• We'll schedule a personalized demo</p>
+              <p>• Thank you for your interest!</p>
+              <p>• We'll follow up within 24 hours</p>
+              <p>• Questions? Email corey@evolutionsoftwareservices.com</p>
             </div>
           </div>
         ) : (
